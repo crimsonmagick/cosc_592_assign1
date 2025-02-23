@@ -1,6 +1,7 @@
 import tensorflow as tf
 from keras import layers, models
 import matplotlib.pyplot as plt
+from keras.src.losses import SparseCategoricalCrossentropy
 from tf_keras import datasets
 
 gpus = tf.config.list_logical_devices('GPU')
@@ -30,10 +31,11 @@ with tf.device(device):
         layers.Conv2D(64, (3, 3), activation='relu'),
         layers.Flatten(),
         layers.Dense(64, activation='relu'),
-        layers.Dense(10, activation='softmax')
+        layers.Dense(10, activation='softmax'),
     ])
+    
     model.compile(optimizer='adam',
-                  loss='sparse_categorical_crossentropy',
+                  loss=SparseCategoricalCrossentropy(from_logits=False),
                   metrics=['accuracy'])
     history = model.fit(train_images, train_labels,
                         epochs=50,
