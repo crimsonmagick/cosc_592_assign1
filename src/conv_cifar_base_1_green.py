@@ -1,10 +1,16 @@
-import time
-
 import tensorflow as tf
+import time
 from keras import layers, models
-import matplotlib.pyplot as plt
 from keras.src.losses import SparseCategoricalCrossentropy
+import matplotlib.pyplot as plt
 from tf_keras import datasets
+
+RED = 0
+GREEN = 1
+BLUE = 2
+
+def filter_rgb_channel(images, channel):
+    return images[:, :, :, channel:channel + 1]
 
 gpus = tf.config.list_logical_devices('GPU')
 if len(gpus) != 0:
@@ -25,19 +31,24 @@ with tf.device(device):
     train_images = train_images.astype('float32') / 255.0
     test_images = test_images.astype('float32') / 255.0
     
+    rgb_channel = GREEN
+
+    train_images = filter_rgb_channel(train_images, rgb_channel)
+    test_images = filter_rgb_channel(test_images, rgb_channel)
+    
     model = models.Sequential([
-        layers.Conv2D(32, (3, 3), activation=None, input_shape=(32, 32, 3)),
+        layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 1)),
         layers.MaxPooling2D((2, 2)),
-        layers.Conv2D(64, (3, 3), activation=None),
+        layers.Conv2D(64, (3, 3), activation='relu'),
         layers.MaxPooling2D((2, 2)),
-        layers.Conv2D(64, (3, 3), activation=None),
+        layers.Conv2D(64, (3, 3), activation='relu'),
         layers.Flatten(),
-        layers.Dense(64, activation=None),
-        layers.Dense(10, activation=None),
+        layers.Dense(64, activation='relu'),
+        layers.Dense(10, activation='softmax'),
     ])
     
     model.compile(optimizer='adam',
-                  loss=SparseCategoricalCrossentropy(from_logits=True),
+                  loss=SparseCategoricalCrossentropy(from_logits=False),
                   metrics=['accuracy'])
     start = time.time()
     history = model.fit(train_images, train_labels,
@@ -58,4 +69,3 @@ with tf.device(device):
     plt.ylabel('Loss')
     plt.legend()
     plt.show()
-

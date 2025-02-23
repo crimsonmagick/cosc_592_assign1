@@ -33,11 +33,11 @@ with tf.device(device):
         layers.Conv2D(64, (3, 3), activation=None),
         layers.Flatten(),
         layers.Dense(64, activation=None),
-        layers.Dense(10, activation=None),
+        layers.Dense(10, activation='softmax'),
     ])
     
     model.compile(optimizer='adam',
-                  loss=SparseCategoricalCrossentropy(from_logits=True),
+                  loss=SparseCategoricalCrossentropy(from_logits=False),
                   metrics=['accuracy'])
     start = time.time()
     history = model.fit(train_images, train_labels,

@@ -1,3 +1,4 @@
+import time
 import tensorflow as tf
 from keras import layers, models
 import matplotlib.pyplot as plt
@@ -37,15 +38,17 @@ with tf.device(device):
     model.compile(optimizer='adam',
                   loss=SparseCategoricalCrossentropy(from_logits=False),
                   metrics=['accuracy'])
+    start = time.time()
     history = model.fit(train_images, train_labels,
                         epochs=50,
                         batch_size=64,
                         validation_split=0.1)
+    duration_ms = (time.time() - start) * 1000
     train_accuracy, val_accuracy = history.history['accuracy'], history.history['val_accuracy']
 
     epochs = range(1, len(train_accuracy) + 1)
     test_loss, test_acc = model.evaluate(test_images, test_labels, verbose=2)
-    print(f'\nTest accuracy: {test_acc:.4f}')
+    print(f'\nTest accuracy: {test_acc:.4f}, time: {duration_ms:.0f}ms')
     
     plt.plot(epochs, train_accuracy, 'g', label='Training Accuracy')
     plt.plot(epochs, val_accuracy, 'b', label='Validation Accuracy')
