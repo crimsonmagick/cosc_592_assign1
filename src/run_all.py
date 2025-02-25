@@ -1,6 +1,3 @@
-import multiprocessing
-
-import tensorflow as tf
 import importlib
 import inspect
 import pkgutil
@@ -9,6 +6,7 @@ from concurrent.futures import ProcessPoolExecutor
 import src.cifar_tests
 from src.cifar_tests.model_runner import ModelRunner
 
+WORKERS = 1
 
 def get_classes_from_subpackage(package):
     classes = []
@@ -27,8 +25,8 @@ def get_classes_from_subpackage(package):
 def run_task(test_class):
     test_class('../report').run_test()
 
-def run_classes(tests):
-    with ProcessPoolExecutor(max_workers=12) as executor:
+def run_classes(tests, workers):
+    with ProcessPoolExecutor(max_workers=workers) as executor:
         running_tasks = [executor.submit(run_task, test) for test in tests]
         for running_task in running_tasks:
             running_task.result()
@@ -37,4 +35,4 @@ def run_classes(tests):
 if __name__ == "__main__":
     all_classes = list(filter(lambda to_check: to_check != ModelRunner and (issubclass(to_check, ModelRunner)),
                               get_classes_from_subpackage(src.cifar_tests)))
-    run_classes(all_classes)
+    run_classes(all_classes, WORKERS)
