@@ -10,6 +10,8 @@
 \usepackage{float}
 \usepackage{subcaption}
 
+\lstalias{none}{}
+
 \lstset{
     language=Python,
     basicstyle=\ttfamily\footnotesize\selectfont, % use the selected monospaced font
@@ -28,7 +30,7 @@
 }
 
 \title{Assignment 1 - Training Random CNNs in Tensorflow \\
-\large Who needs activation functions anyway?}
+\large I Poked at a CNN and it was Pretty Alright}
 \author{
     [Welby Seely] \\
     \texttt{[wseely@emich.edu]}
@@ -222,7 +224,7 @@
     The Softmax applied as a part of the loss function acts as a de-facto activation function.
     There may be mathematical implications on fusing the activation function with the loss function, but in this case the results are identical.
 
-    \subsection{No activation functions at all}\label{subsec:no-activation-functions-at-all}
+    \subsection{Who needs activation functions anyway?}\label{subsec:no-activation-functions-at-all}
 
     Finally, let's remove all activation functions, including the softmax (explicit or implicit):
 
@@ -258,7 +260,6 @@
     A 10 percent accuracy means that you have an equally random chance at of correctly classifying an image, a heavily parameterized 10-sided die.
     \\
     Training time remains the same because the parameters have remained the same.
-
 
     \section{Wait, are the Convolutional Layers Important?}\label{cnn-important}
 
@@ -324,7 +325,7 @@
 
     We bumped up the accuracy from ~70\% to ~74\% which is a decent uplift.
     Training time was almost doubled because of the quadrupling of parameters (122,570 parameters $\rightarrow$ 551,882 parameters).
-
+%
     \section{Ok Let's Get That Accuracy to at Least 80\%}\label{skip-connections}
 
     I set a goal for myself to achieve at least 80\% accuracy.
@@ -420,8 +421,9 @@
     Training time was much longer due to the much higher parameters and the 50 epochs.
 
     \section{My Ominous Consultations With the Dark Oracles ChatGPT and Deepseek}\label{sec:gen-ai-blah}
-    \begin{lstlisting}[label={lst:deepseek}]
 
+    Deepseek:
+    \begin{lstlisting}[language=none,label={lst:consultation1}]
     Q: In Tensorflow, does parse_categorical_crossentropy apply the softmax internally?
 
     A: In TensorFlow/Keras, the sparse_categorical_crossentropy loss function does not automatically apply softmax internally unless you explicitly set from_logits=True. Here's the breakdown:
@@ -431,7 +433,60 @@
         The loss function will then internally apply softmax to the raw logits (unnormalized scores) during loss computation.
 
         ...
+
+    Q: Does this mean the softmax still becomes a defacto activation function? In other words, are the following two snippets equivalent?
+        [two snippets of Base CNN, with softmax moved from Conv2D to the loss funciton]
+    A: Yes, the two snippets are functionally equivalent in terms of training behavior and loss computation. Here's why:
+        ...
+    Q: Why isn't my task running? [in reference to a multithreaded runner I built for these Tensor]
+    A: The issue arises because the lambda functions you're creating inside run_classes are not picklable, which is required when using ProcessPoolExecutor to send tasks to worker processes. Here's the corrected approach:
+        ...
+    Q: pickled?
+
+    A: "Pickled" refers to the process of serializing a Python object into a byte stream, which can be saved to disk, sent over a network, or (in your case) passed between processes.
+        ...
+    Q: My feature map dimensions will be cut in half here, correct?
+       e.g. in tensorflow:
+
+       model = models.Sequential([
+                    layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)),
+                    layers.MaxPooling2D((2, 2)),
+                    ...
+        The feature map (square) dimension is (32 - 3 + 2*0) /1 + 1, so that's 30 x 30. So the output would 15 x 15 before going to the next convolutional layer?
+    A: Max pooling reduces the spatial dimensions (height and width) of a feature map by applying a sliding window that takes the maximum value within each window.
+       ...
+       Final output: The feature map dimensions become 15×15×32 (channels remain unchanged). The next layer receives this 15×15×32 tensor.
+
+
     \end{lstlisting}
+    ChatGPT:
+
+    \begin{lstlisting}[language=none,label={lst:consultation2}]
+       Q: How do the Convolutional Layers  Restnet-50 wok with CIFAR-10? Each pooling layer after a convolutional layer cuts down the feature map size, correct? How can there be 49 convolutional layers? [I'm expecting it to explain the usage of padding and how residual connections are set up]
+
+       A: Great question! When using ResNet-50 on CIFAR-10 or CIFAR-100, the architecture is slightly modified because the original ResNet-50 was designed for ImageNet (224×224 input size), whereas CIFAR images are much smaller (32×32 resolution).
+
+        ResNet-50 uses bottleneck blocks, where each block has three convolutional layers:
+
+        1×1 conv (reduces dimensionality)
+        3×3 conv (extracts features)
+        1×1 conv (restores dimensionality)
+
+        There are 16 such bottleneck blocks across the network, plus the initial convolutional layer:
+        ...
+
+        [I then decided I needed to look at an actual implementation of ResNet to be able to use a res block in my network]
+
+        Q: I'm terrible at LaTeX please help x 10
+        A: Generally helpful advice
+    \end{lstlisting}
+
+    \section{Deliverables}\label{sec:deliverables}
+    Full code can be found \href{https://github.com/crimsonmagick/cosc\_592\_assign1.git}{here on Github}.
+
+    3 self-contained examples of the Base CNN, the Base CNN per Color Channel, and the Residual Block network are submitted separately to fulfill the reqs of at least 3 self-contained scripts.
+    Scripts can be run with Tensorflow and Matplotlib on Python 3.12.X\@.
+    A Pip requirements file is provided in the git repo.
 
     \bibliographystyle{plainurl}
     \bibliography{bibliography}
