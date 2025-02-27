@@ -8,7 +8,7 @@ class BiggerCnn(ModelRunner):
     
     def run_test(self):
         epoch_count = 20
-        test_name = "Bigger CNN 2"
+        test_name = "Bigger CNN"
         
         cifar10 = datasets.cifar10
         (train_images, train_labels), (test_images, test_labels) = cifar10.load_data()
@@ -36,8 +36,8 @@ class BiggerCnn(ModelRunner):
                       loss=SparseCategoricalCrossentropy(from_logits=False),
                       metrics=['accuracy'])
         print(model.summary())
-        self._run_model(model, train_images, train_labels, test_images, test_labels, epoch_count, test_name,
-                        show_graph=True)
+        self._train_model(model, train_images, train_labels, test_images, test_labels, epoch_count, test_name,
+                          show_graph=True)
 
 
 if __name__ == '__main__':

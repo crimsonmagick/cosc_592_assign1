@@ -22,11 +22,13 @@ class BaseCnn(ModelRunner):
             layers.Dense(64, activation='relu'),
             layers.Dense(10, activation='softmax'),
         ])
+        
 
         model.compile(optimizer='adam',
                       loss=SparseCategoricalCrossentropy(from_logits=False),
                       metrics=['accuracy'])
-        self._run_model(model, train_images, train_labels, test_images, test_labels, epoch_count, test_name)
+        model.summary()
+        self._train_model(model, train_images, train_labels, test_images, test_labels, epoch_count, test_name)
 
 
 if __name__ == '__main__':

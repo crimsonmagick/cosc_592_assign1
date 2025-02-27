@@ -27,7 +27,7 @@ class ModelRunner(ABC):
             print(f"Using device {self.device}")
 
     
-    def _run_model(self, model, train_images, train_labels, test_images, test_labels, epoch_count, test_name, show_graph=False):
+    def _train_model(self, model, train_images, train_labels, test_images, test_labels, epoch_count, test_name, show_graph=False):
         with tf.device(self.device):
             train_images_normalized = train_images.astype('float32') / 255.0
             test_images_normalized = test_images.astype('float32') / 255.0

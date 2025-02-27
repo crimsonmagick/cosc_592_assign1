@@ -1,0 +1,10 @@
+Softmax FF Layer Only (No CNN): Test accuracy: 0.3728, time: 16207ms
+All Activation Functions Disabled Except Softmax: Test accuracy: 0.6268, time: 20752ms
+Base CNN: Test accuracy: 0.7091, time: 21006ms
+Base CNN, Red Channel Only: Test accuracy: 0.6731, time: 19562ms
+Base CNN, Green Channel Only: Test accuracy: 0.6759, time: 19863ms
+Base CNN, Blue Channel Only: Test accuracy: 0.6801, time: 19905ms
+Bigger CNN: Test accuracy: 0.7348, time: 36409ms
+Base CNN, No Activation Functions, Softmax Included in Loss Function: Test accuracy: 0.6339, time: 20811ms
+Base CNN, All Activation Functions Disabled: Test accuracy: 0.1000, time: 20835ms
+CNN With Haphazardly Placed Residual Blocks: Test accuracy: 0.8010, time: 258071ms

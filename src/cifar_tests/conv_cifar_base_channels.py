@@ -41,7 +41,7 @@ class SingleChannelCnn(ModelRunner):
                           loss=SparseCategoricalCrossentropy(from_logits=False),
                           metrics=['accuracy'])
             test_name = test_name_template.format(channel.name)
-            self._run_model(model, train_images_filtered, train_labels, test_images_filtered, test_labels, epoch_count, test_name)
+            self._train_model(model, train_images_filtered, train_labels, test_images_filtered, test_labels, epoch_count, test_name)
 
 if __name__ == '__main__':
     SingleChannelCnn('../../report').run_test()

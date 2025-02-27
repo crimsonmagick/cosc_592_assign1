@@ -1,0 +1,1 @@
+Bigger CNN: Test accuracy: 0.7348, time: 36409ms

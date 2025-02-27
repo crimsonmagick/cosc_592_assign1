@@ -1,0 +1,1 @@
+CNN With Haphazardly Placed Residual Blocks: Test accuracy: 0.8200, time: 254029ms
