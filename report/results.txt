@@ -1,1 +1,33 @@
-Bigger CNN: Test accuracy: 0.7348, time: 36409ms
+Bigger CNN: Test accuracy: 0.7348, time: 3640In TensorFlow/Keras, the sparse_categorical_crossentropy loss function does not automatically apply softmax internally unless you explicitly set from_logits=True. Here's the breakdown:
+
+\subsection*{Key Points:}
+\begin{enumerate}
+\item Default Behavior (from_logits=False):
+
+\begin{itemize}
+\item If your model's final layer does NOT use a softmax activation, you must set from_logits=True when using sparse_categorical_crossentropy.
+
+
+\item The loss function will then internally apply softmax to the raw logits (unnormalized scores) during loss computation.
+
+
+\end{itemize}
+
+\end{enumerate}In TensorFlow/Keras, the sparse_categorical_crossentropy loss function does not automatically apply softmax internally unless you explicitly set from_logits=True. Here's the breakdown:
+
+\subsection*{Key Points:}
+\begin{enumerate}
+\item Default Behavior (from_logits=False):
+
+\begin{itemize}
+\item If your model's final layer does NOT use a softmax activation, you must set from_logits=True when using sparse_categorical_crossentropy.
+
+
+\item The loss function will then internally apply softmax to the raw logits (unnormalized scores) during loss computation.
+
+
+\end{itemize}
+
+\end{enumerate}
+
+9ms

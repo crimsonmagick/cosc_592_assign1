@@ -39,11 +39,13 @@
 
     \maketitle
 
+
     \section{Common Hyperparameters}\label{sec:preamble}
 
     RELU was used for the convolutional activations across all tests, softmax was applied to the output with a couple notable exceptions.
     Used the Adam optimizer for its efficiency in stochastic gradient descent~\cite{kingma2017adammethodstochasticoptimization} and SparseCategoricalCrossentropy because this is a classification problem.
     20 epochs were used for all tests except against the slapdash residual CNN where 50 epoches were used.
+
 
     \section{Base Design}\label{sec:base-design}
 
@@ -76,6 +78,7 @@
     There were diminishing returns after about 5 epochs.
 
     Now that the base test is out of the way, I experimented with removing elements to get a better understanding of the characteristics and mechanisms of CNNs.
+
 
     \section{Time to Go Monochrome!}\label{sec:one-channel}
 
@@ -147,6 +150,7 @@
             \caption{Blue Channel}
         \end{subfigure}\label{fig:figure}%
     \end{figure}
+
 
     \section{Removing Activation Functions With Wild Abandon}\label{sec:wild-abandon}
 
@@ -255,6 +259,7 @@
     \\
     Training time remains the same because the parameters have remained the same.
 
+
     \section{Wait, are the Convolutional Layers Important?}\label{cnn-important}
 
     Removing all activation functions but the softmax produces ok-ish results, what if remove the convolutional layers entirely?
@@ -280,6 +285,45 @@
     We dropped from about 64\% to 37\%.
     Even without activation functions, the convolutional layers contribute significantly to both accuracy and numerical stability.
 
+    \section{A slightly bigger CNN}\label{sec:bigger}
+
+    Augmented the original CNN, adding 3 new layers and doubled the filter count.
+    Added additional padding to the original image to accomodate the excessive downsampling of the additional layers.
+
+    \begin{lstlisting}[label={lst:bigger_code}]
+        model = models.Sequential([
+            Input(shape=(32, 32, 3)),
+            layers.ZeroPadding2D(
+                padding=(3, 3),
+            ),
+            layers.Conv2D(64, (3, 3), activation='relu', padding='valid'),
+            layers.MaxPooling2D((2, 2)),
+            layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+            layers.MaxPooling2D((2, 2)),
+            layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+            layers.MaxPooling2D((2, 2)),
+            layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+            layers.MaxPooling2D((2, 2)),
+            layers.Conv2D(128, (3, 3), activation='relu', padding='same'),
+            layers.Flatten(),
+            layers.Dense(64, activation='relu'),
+            layers.Dense(10, activation='softmax'),
+        ])
+    \end{lstlisting}
+
+    \begin{itemize}
+        \item Accuracy: 73.48\%
+        \item Training Time: 36.41 seconds
+    \end{itemize}
+
+    \begin{figure}[!htbp]
+        \centerline{\includegraphics[width=0.55\columnwidth]{Bigger CNN}}
+        \caption{Bigger and slightly more accurate CNN}
+        \label{fig:bigger}
+    \end{figure}
+
+    We bumped up the accuracy from ~70\% to ~74\% which is a decent uplift.
+    Training time was almost doubled because of the quadrupling of parameters (122,570 parameters $\rightarrow$ 551,882 parameters).
 
     \section{Ok Let's Get That Accuracy to at Least 80\%}\label{skip-connections}
 
@@ -329,36 +373,65 @@
                                   show_graph=True)
     \end{lstlisting}
 
-    The network starts off with padding, a conv layer, and a max pooling layer just like the CNN that preceeded it.
+    The network starts off with padding, a conv layer, and a max pooling layer just like the CNN that preceded it.
     Three ``Residual Blocks'' follow.
     Each residual block contains:
 
     \begin{itemize}
-      \item A Convolution layer that downsamples the channels/filters to 128.
-      \begin{itemize}
-          \item When down or upsampling, a kernel size of 1 x 1 is used to keep the feature map the same size ~\cite{mukherjee2022annotated}.
-      \end{itemize}
-      \item A Batch Normalization Layer
-      \begin{itemize}
-          \item This is used ~\cite{mukherjee2022annotated}.
-      \end{itemize}
+        \item A Convolution layer that downsamples the channels/filters to 128.
+        \begin{itemize}
+            \item When down or upsampling, a kernel size of 1 x 1 is used to keep the feature map the same size ~\cite{mukherjee2022annotated}.
+        \end{itemize}
+        \item A Batch Normalization Layer
+        \begin{itemize}
+            \item During training, this is used to normalize activations of a previous layer based on the mean and standard deviation of the current mini-batch~\cite{mukherjee2022annotated}.
+            \item During inference, this uses the mean and standard deviation seen during training~\cite{mukherjee2022annotated}.
+            \item This is used to speed up convergence and provide regularization in training~\cite{mukherjee2022annotated}.
+        \end{itemize}
+        \item RelU activation
+        \item A convolutional layer that  extracts features with a 3 x 3 kernel.
+        \item Another batch normalization layer
+        \item Relu Activation
+        \item A final convolutional layer, upsampling to 256 channels with a 1 x 1 kernel
+        \item A final batch normalization
+        \item A ``skip'' or ``residual'' connection, adding the original input to output of the convolutional layers
+        \item A final ReLU activation function
     \end{itemize}
 
+    The network is finished off with average pooling and a dense layer of 512.
+
+    Trained with 50 epochs to try to get above 80\%:
+
     \begin{itemize}
-        \item Accuracy: 73.48\%
-        \item Training Time: 36.41 seconds
+        \item Accuracy: 82.00\%
+        \item Training Time: 254.03 seconds
     \end{itemize}
 
     \begin{figure}[!htbp]
-        \centerline{\includegraphics[width=0.55\columnwidth]{Bigger CNN}}
-        \caption{Bigger and slightly more accurate CNN}
-        \label{fig:bigger}
+        \centerline{\includegraphics[width=0.55\columnwidth]{CNN With Haphazardly Placed Residual Blocks_1}}
+        \caption{Very zig-zaggy}
+        \label{fig:res}
     \end{figure}
 
-    We bumped up the accuracy from ~70\% to ~74\% which is a decent uplift.
-    Training time was almost doubled because of the quadrupling of parameters (122,570 parameters \rightarrow 551,882 parameters).
+    Mission was accomplished, but the training was extremely unstable.
+    The residual blocks allowed the network to better reach the ``span'' of the solution vector space, enabling potential higher accuracy, but the network did not properly converge.
+    Additional residual blocks of different types would need to be added for that sort of stability, as in Resnet.
+    I basically lucked out by the training ending on an epoch with accuracy greater than 80\%.
+    Training time was much longer due to the much higher parameters and the 50 epochs.
 
+    \section{My Ominous Consultations With the Dark Oracles ChatGPT and Deepseek}\label{sec:gen-ai-blah}
+    \begin{lstlisting}[label={lst:deepseek}]
 
+    Q: In Tensorflow, does parse_categorical_crossentropy apply the softmax internally?
+
+    A: In TensorFlow/Keras, the sparse_categorical_crossentropy loss function does not automatically apply softmax internally unless you explicitly set from_logits=True. Here's the breakdown:
+
+        If your model's final layer does NOT use a softmax activation, you must set from_logits=True when using sparse_categorical_crossentropy.
+
+        The loss function will then internally apply softmax to the raw logits (unnormalized scores) during loss computation.
+
+        ...
+    \end{lstlisting}
 
     \bibliographystyle{plainurl}
     \bibliography{bibliography}
